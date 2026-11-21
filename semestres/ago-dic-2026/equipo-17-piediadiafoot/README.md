@@ -10,8 +10,8 @@
 
 | Nombre | Matrícula | Rol | GitHub |
 |--------|-----------|-----|--------|
-| GEOVANNI MORENO GOMEZ | 23240475 | Firmware ESP32/WROVER, Servidor Python/IA | @GeovanniMoreno |
-| DANNA VALERIA ANGELES PEREZ | 23240335 | Hardware/Carcasa, Documentación | @Danna-noob |
+| GEOVANNI MORENO GOMEZ | 23240475 | Firmware ESP32/WROVER, Servidor Python/IA, Firebase/Interfaz | @GeovanniMoreno |
+| DANNA VALERIA ANGELES PEREZ | 23240335 | Hardware, Carcasa, Documentación | @Danna-noob |
 | ANDREA LOPEZ ESTRADA | 23240168 | Carcasa | pendiente |
 
 ---
