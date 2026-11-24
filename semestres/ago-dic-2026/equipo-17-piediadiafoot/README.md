@@ -4,6 +4,7 @@
 ![Semestre](https://img.shields.io/badge/semestre-ago--dic--2026-blue)
 ![Materia](https://img.shields.io/badge/materia-Sistemas%20Programables-orange)
 
+> **Carrera:** Ingeniería en Sistemas Computacionales
 > **Semestre:** ago-dic-2026
 > **Materia:** Sistemas Programables — ISC TecNM León
 > **Integrantes:**
@@ -12,7 +13,7 @@
 |--------|-----------|-----|--------|
 | GEOVANNI MORENO GOMEZ | 23240475 | Firmware ESP32/WROVER, Servidor Python/IA, Firebase/Interfaz | @GeovanniMoreno |
 | DANNA VALERIA ANGELES PEREZ | 23240335 | Hardware, Carcasa, Documentación | @Danna-noob |
-| ANDREA LOPEZ ESTRADA | 23240168 | Carcasa | pendiente |
+| ANDREA LOPEZ ESTRADA | 23240168 | Carcasa, Edición video | pendiente |
 
 ---
 
@@ -46,14 +47,14 @@ Esta separación permite utilizar HTTP para la transferencia de imágenes y MQTT
 
 ### Tópicos MQTT
 
-| Tópico | Publica | Recibe |
-|--------|-----------|-------------|
-| `proyecto/sensores/lectura` | ESP32 DevKit | Laptop |
-| `proyecto/actuador/estado` | ESP32 DevKit | Laptop |
-| `proyecto/actuador/cmd` | Laptop | ESP32 DevKit |
-| `proyecto/ia/decision` | Laptop | ESP32 DevKit |
-| `proyecto/camara/estado` | Laptop | ESP32 DevKit |
-| `proyecto/camara/cmd` | Dashboard futuro | Laptop |
+| Tópico | Publica | Suscribe | Contenido |
+|-----|-----|-----|-----|
+| `proyecto/sensores/lectura` | ESP32 DevKit | Servidor Python | Lecturas y banderas de sensores. |
+| `proyecto/actuador/estado` | ESP32 DevKit | Servidor Python | Estado de la máquina de estados y actuadores. |
+| `proyecto/actuador/cmd` | Servidor Python | ESP32 DevKit | Comandos de operación y control. |
+| `proyecto/ia/decision` | Servidor Python | ESP32 DevKit | Resultado de inferencia YOLO. |
+| `proyecto/camara/estado` | Servidor Python | ESP32 DevKit | Disponibilidad de cámara/YOLO y notificaciones de captura. |
+| `proyecto/camara/cmd` | NA | Servidor Python (suscripción preparada) | Tópico reservado para una solicitud de captura |
 
 
 ---
@@ -146,19 +147,12 @@ vision_mqtt.py
 5.El servidor obtiene la clase detectada y su nivel de confianza.
 6.El resultado puede utilizarse para mostrar información en la interfaz y generar eventos o comandos para el sistema.
 ```
-- **Confianza mínima aceptada:** _%_
+- **Confianza mínima aceptada:** _85%_
 
 ---
 
 ## 🎥 Demostración
->El video aun no está disponible, quedará listo hasta el Sprint 4
-**Video demostrativo (YouTube):** [▶️ Ver video](https://youtube.com/watch?v=XXXXXXXX)
-
-### Fotos del prototipo final
-
-| Vista frontal | Vista interna | Sistema en operación |
-|--------------|---------------|----------------------|
-| ![frontal](media/prototipo-frontal.jpg) | ![interna](media/prototipo-interno.jpg) | ![operacion](media/sistema-operacion.jpg) |
+**Video demostrativo (YouTube):** [▶️ Ver video](https://youtu.be/8TXUw_Kkb7M)
 
 ---
 
