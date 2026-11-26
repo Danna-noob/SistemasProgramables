@@ -1,3 +1,16 @@
+"""
+============================================
+ Proyecto:  PIE DIABETICO - DIA FOOD
+ Archivo:   prueba_subida.py
+ Objetivo:  Corroborar que las imágenes son procesadas de manera correcta
+ Equipo:
+    GEOVANNI MORENO GOMEZ       | 23240475 |
+    DANNA VALERIA ANGELES PEREZ | 23240335 |
+    ANDREA LOPEZ ESTRADA        | 23240168 |
+ Materia:   Sistemas Programables — ISC TecNM León
+ Semestre:  ago-dic-2026
+============================================
+"""
 
 import os
 import base64

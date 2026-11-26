@@ -1,14 +1,14 @@
-# DiaFoot — Documentación técnica
+# PIE DIABETICO - DIA FOOD — Documentación técnica
 
-**Tipo de documento:** documentación de arquitectura y operación  
-**Versión del paquete:** entrega documental  
-**Alcance:** describe los archivos incluidos en este respaldo; no certifica una nueva prueba física.
+**Integrantes:**
+1. GEOVANNI MORENO GOMEZ       | 23240475 |
+2. DANNA VALERIA ANGELES PEREZ | 23240335 |
+3. ANDREA LOPEZ ESTRADA        | 23240168 | 
 
 ## 1. Propósito
 
-DiaFoot es un prototipo que integra adquisición de datos de sensores, control de actuadores, captura de imágenes y análisis experimental mediante visión artificial. Una aplicación de escritorio en Python coordina la cámara y el intercambio MQTT; el Dashboard permite consultar y supervisar información del sistema.
+Vision Dia Foot es un prototipo que integra adquisición de datos de sensores, control de actuadores, captura de imágenes y análisis experimental mediante visión artificial. Una aplicación de escritorio en Python coordina la cámara y el intercambio MQTT; el Dashboard permite consultar y supervisar información del sistema.
 
-El sistema es de carácter experimental y **no sustituye una valoración ni un diagnóstico médico**.
 
 ## 2. Arquitectura general
 
@@ -30,7 +30,9 @@ El sistema es de carácter experimental y **no sustituye una valoración ni un d
 5. Las imágenes y sus metadatos se envían a Supabase y Firestore cuando los servicios y credenciales están disponibles.
 6. `dashboard.py` presenta la información disponible mediante Streamlit y consulta la API local en `127.0.0.1:8000`.
 
-## 3. Estructura del paquete
+## 3. Estructura inical del paquete
+
+>Básicamente de esta forma se estuvo trabajando localmente, después fue adaptado y modificado tanto para cumplir con los requisitos de la materia como para optimizar y mejorar la estructura del repositorio.
 
 ```text
 DIAFOOT_PROYECTO/
@@ -57,8 +59,6 @@ DIAFOOT_PROYECTO/
 └── documentación
 ```
 
-El ZIP incluye otros archivos auxiliares e históricos. Para la ejecución principal se deben priorizar los archivos indicados en el manual de instalación. `config_ia.json` es la configuración que carga `vision_mqtt.py`; `config_iaa.json` se conserva como archivo auxiliar/histórico.
-
 ## 4. Comunicación MQTT
 
 El broker utiliza TCP `1883` en la configuración de referencia. Los nombres de usuario indicados en la ACL son `esp32_user` y `vision_user`; las contraseñas reales deben coincidir con las creadas localmente en Mosquitto.
@@ -72,19 +72,17 @@ El broker utiliza TCP `1883` en la configuración de referencia. Los nombres de 
 | `proyecto/camara/cmd` | Solicitudes relacionadas con la cámara/captura. |
 | `proyecto/camara/estado` | Estado publicado para la cámara. |
 
-Los tópicos se pueden cambiar en `laptop/config_ia.json` y deben mantenerse consistentes con el firmware. No cambies nombres de tópicos de forma aislada.
+Los tópicos se pueden cambiar en `config_ia.json` y deben mantenerse consistentes con el firmware.
 
 ## 5. Cámara y formato de imagen
 
-El firmware WROVER incluido utiliza `Camera`, `FrameSize.QVGA` y `PixelFormat.RGB565`. El servidor HTTP funciona en el puerto 80; la ruta `/` muestra la interfaz de cámara y `/frame` entrega un fotograma RGB565. La aplicación de laptop realiza una petición HTTP y convierte el formato para OpenCV. No se debe configurar como un stream MJPEG ni sustituir este método por `cv2.VideoCapture()` sin modificar y validar ambos extremos.
+El firmware WROVER incluido utiliza `Camera`, `FrameSize.QVGA` y `PixelFormat.RGB565`. El servidor HTTP funciona en el puerto 80; la ruta `/` muestra la interfaz de cámara y `/frame` entrega un fotograma RGB565. La aplicación de laptop realiza una petición HTTP y convierte el formato para OpenCV.
 
 QVGA corresponde a 320 × 240 píxeles, coincidente con `camera_width` y `camera_height` en `config_ia.json`.
 
 ## 6. Modelo de visión artificial
 
-El archivo `laptop/best.pt` es el modelo YOLO incluido en el paquete. La ruta se define en `model_path`. El umbral inicial de confianza configurado es `0.35`; se puede ajustar, pero cualquier cambio debe probarse y documentarse. La detección depende de la calidad de imagen, iluminación, posición, entrenamiento del modelo y condiciones de captura.
-
-No se debe interpretar una detección como diagnóstico médico ni como medición clínica validada.
+El archivo `best.pt` es el modelo YOLO incluido en el paquete. La ruta se define en `model_path`. El umbral inicial de confianza configurado es `0.35`; el cual se puede ajustar. La detección depende de la calidad de imagen, iluminación, posición, entrenamiento del modelo y condiciones de captura.
 
 ## 7. API local y Dashboard
 
@@ -97,14 +95,6 @@ No se debe interpretar una detección como diagnóstico médico ni como medició
 
 Si no hay credenciales, los bloques de nube no podrán persistir ni consultar los datos correspondientes. El comportamiento local de visión/MQTT puede seguir siendo útil, pero las funciones del Dashboard que dependen de Firestore o Storage no estarán completas.
 
-## 9. Seguridad y privacidad
+## 9. Criterios para una reproducción
 
-- No distribuir `.env`, claves privadas, contraseñas MQTT ni JSON de cuenta de servicio.
-- Cambiar credenciales que hayan sido expuestas en respaldos anteriores.
-- Proteger las fotografías y los datos identificables de pacientes; usar únicamente datos de prueba autorizados.
-- No publicar una clave de Supabase de servidor en repositorios o aplicaciones de navegador.
-- Mantener broker, laptop y placas en una red controlada.
-
-## 10. Criterios para una reproducción
-
-Antes de declarar una instalación reproducida, comprobar en el equipo destino: conexión Wi-Fi, acceso HTTP a la cámara, conexión MQTT de ambos clientes, carga de YOLO, respuesta de API local, apertura de Streamlit y acceso a Firebase/Supabase. Registrar versiones, fecha, equipo y resultados de cada prueba.
+Antes de declarar una instalación reproducida, comprobar en el equipo destino: conexión Wi-Fi, acceso HTTP a la cámara, conexión MQTT de ambos clientes, carga de YOLO, respuesta de API local, apertura de Streamlit y acceso a Firebase/Supabase.

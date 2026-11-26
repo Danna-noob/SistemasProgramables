@@ -32,6 +32,7 @@ node_modules/
 
 # Pesos de modelos de inteligencia artificial
 *.pt
+!servidor/ia/best.pt
 
 # Archivos de registro
 *.log

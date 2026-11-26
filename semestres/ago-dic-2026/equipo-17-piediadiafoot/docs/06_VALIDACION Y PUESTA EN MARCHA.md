@@ -34,7 +34,7 @@
 - [x] Verificar suscripción DevKit a `proyecto/ia/decision`.
 - [x] Verificar suscripción DevKit a `proyecto/camara/estado`.
 - [x] Ejecutar YOLO y verificar detecciones recibidas por DevKit.
-- [ ] Verificar que la pérdida MQTT apague ventilador/LEDs y baje bandera.
+- [x] Verificar que la pérdida MQTT apague ventilador/LEDs y baje bandera.
 
 ## Fase 3 — Banda/motor (no iniciar hasta autorización eléctrica)
 
@@ -42,7 +42,7 @@
 - [x] Obtener/medir corriente de arranque y corriente de bloqueo mediante procedimiento/equipo adecuado; no bloquear el motor manualmente.
 - [x] Dimensionar fuente y etapa de inversión para corriente inductiva real.
 - [x] Verificar la capacidad DC inductiva de relevadores/controlador.
-- [x] Colocar topes mecánicos resistentes y, preferiblemente, finales de carrera eléctricos.
+- [ ] Colocar topes mecánicos resistentes y, preferiblemente, finales de carrera eléctricos.
 - [x] Confirmar polaridad y sentido con el motor desacoplado de la banda.
 - [x] Calibrar desplazamiento por pulso con regla, mecanismo libre y operador observando.
 - [x] Establecer `motor_enabled=true` sólo después de completar los puntos anteriores.
@@ -56,7 +56,7 @@
 - [x] Verificar distancia de sensor a dedos con un objeto patrón y pie de prueba.
 - [x] Comprobar línea de visión MLX90614, lecturas ambiente/objeto y estabilidad.
 - [ ] Ajustar el criterio térmico; sólo entonces poner `temperature_validation_enabled=true` y establecer `temperature_delta_min_c` si las pruebas lo respaldan.
-- [ ] Ajustar ángulos oculto/listo de la bandera.
+- [x] Ajustar ángulos oculto/listo de la bandera.
 - [x] Ajustar umbrales de posición y temporización de retiro del pie.
 
 ## Fase 5 — Flujo de sesión
@@ -67,7 +67,7 @@
 - [x] Revisar temperatura y confirmar con T mientras el criterio automático siga deshabilitado.
 - [x] Esperar estado de cámara/YOLO.
 - [x] Ajustar encuadre manualmente y confirmar con V.
-- [ ] Confirmar ventilador/LEDs y bandera LISTO.
+- [x] Confirmar ventilador/LEDs y bandera LISTO.
 - [x] Tomar varias fotografías con P y comprobar original, anotada y JSON.
 - [x] Finalizar con N; esperar retiro del pie; comprobar ventilador/LEDs OFF y bandera abajo.
 - [x] Regresar MANUALMENTE la cámara a la marca central y pulsar C para confirmar el centro.

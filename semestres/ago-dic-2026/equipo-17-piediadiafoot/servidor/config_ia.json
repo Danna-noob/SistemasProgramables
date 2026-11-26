@@ -7,7 +7,7 @@
   "camera_stream_url": "http://IP_DE_LA_WROVER/frame",
   "camera_width": 320,
   "camera_height": 240,
-  "model_path": "best.pt",
+  "model_path": "ia/best.pt",
   "confidence": 0.35,
   "publish_every_seconds": 1.0,
   "frame_period_seconds": 0.05,

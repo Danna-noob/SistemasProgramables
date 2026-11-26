@@ -1,3 +1,16 @@
+"""
+============================================
+ Proyecto:  PIE DIABETICO - DIA FOOD
+ Archivo:   prueba_supabase.py
+ Objetivo:  Como su nombre lo indica, probar que la conexión con supabase esta en correcto funcionamiento
+ Equipo:
+    GEOVANNI MORENO GOMEZ       | 23240475 |
+    DANNA VALERIA ANGELES PEREZ | 23240335 |
+    ANDREA LOPEZ ESTRADA        | 23240168 |
+ Materia:   Sistemas Programables — ISC TecNM León
+ Semestre:  ago-dic-2026
+============================================
+"""
 
 import os
 from pathlib import Path

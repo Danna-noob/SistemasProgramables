@@ -1,3 +1,17 @@
+"""
+============================================
+ Proyecto:  PIE DIABETICO - DIA FOOD
+ Archivo:   dashboard.py
+ Objetivo:  Conectar el resultado de sensores y ESP-CAM con una interfaz intuitiva que el médico pueda
+            manipular y utilizar como herramienta para diagnosticar sus casos
+ Equipo:
+    GEOVANNI MORENO GOMEZ       | 23240475 |
+    DANNA VALERIA ANGELES PEREZ | 23240335 |
+    ANDREA LOPEZ ESTRADA        | 23240168 |
+ Materia:   Sistemas Programables — ISC TecNM León
+ Semestre:  ago-dic-2026
+============================================
+"""
 
 import streamlit as st
 import os
@@ -9,10 +23,7 @@ from supabase import create_client
 import firebase_admin
 from firebase_admin import credentials, firestore
 
-# ============================================================
-# CONFIGURACION GENERAL
-# ============================================================
-
+#================== CONFIGURACION GENERAL ==================
 st.set_page_config(
     page_title="Visión Día Foot",
     page_icon="🦶",
@@ -22,10 +33,7 @@ st.set_page_config(
 
 BASE_DIR = Path(__file__).resolve().parent
 
-# ============================================================
-# CONEXION FIREBASE
-# ============================================================
-
+#================== CONEXION FIREBASE ==================
 load_dotenv(BASE_DIR / ".env")
 
 db = None
@@ -54,10 +62,8 @@ try:
 except Exception as exc:
     firebase_error = str(exc)
 
-# ============================================================
-# CONEXION SUPABASE STORAGE
-# ============================================================
 
+#================== CONEXION SUPABASE STORAGE ==================
 supabase_client = None
 supabase_error = None
 
@@ -80,10 +86,8 @@ try:
 
 except Exception as exc:
     supabase_error = str(exc)
-# ============================================================
-# CONSULTA DE FIRESTORE
-# ============================================================
 
+#================== CONSULTA DE FIRESTORE ==================
 def cargar_sesiones():
     if db is None:
         return [], 0
@@ -184,10 +188,7 @@ def cargar_resultados():
     return resultados
 
 
-# ============================================================
-# GESTION DE PACIENTES
-# ============================================================
-
+#================== GESTION DE PACIENTES ==================
 def cargar_pacientes():
 
     if db is None:
@@ -243,10 +244,7 @@ def guardar_paciente(nombre, apellido):
     return referencia.id
 
 
-# ============================================================
-# COMUNICACION CON BACKEND LOCAL
-# ============================================================
-
+#================== COMUNICACION CON BACKEND LOCAL ==================
 BACKEND_URL = "http://127.0.0.1:8000"
 
 
@@ -279,10 +277,8 @@ def guardar_paciente_seleccionado():
         st.session_state["selector_paciente"]
     )
 
-# ============================================================
-# ESTILOS
-# ============================================================
 
+#================== ESTILOS ==================
 st.markdown("""
 <style>
 
@@ -397,10 +393,8 @@ hr {
 </style>
 """, unsafe_allow_html=True)
 
-# ============================================================
-# BARRA LATERAL
-# ============================================================
 
+#================== BARRA LATERAL ==================
 st.sidebar.title("🦶 Visión Día Foot")
 st.sidebar.caption("Sistema de monitoreo y análisis")
 
@@ -428,10 +422,8 @@ else:
 
 st.sidebar.caption("Proyecto académico · Visión Día Foot")
 
-# ============================================================
-# ENCABEZADO
-# ============================================================
 
+#================== ENCABEZADO ==================
 st.markdown(
     '<div class="main-title">Visión Día Foot</div>',
     unsafe_allow_html=True
@@ -445,11 +437,7 @@ st.markdown(
 
 st.divider()
 
-# ============================================================
-# PAGINA INICIO
-# ============================================================
-
-
+#================== PAGINA INICIO ==================
 if pagina == "Inicio":
 
     st.subheader("Resumen general")
@@ -568,10 +556,7 @@ if pagina == "Inicio":
             "registradas en la nube."
         )
 
-# ============================================================
-# PAGINA PACIENTES
-# ============================================================
-
+#================== PAGINA PACIENTES ==================
 elif pagina == "Pacientes":
     st.subheader("Registro de pacientes")
     st.markdown(
@@ -721,9 +706,8 @@ elif pagina == "Pacientes":
             st.info(
                 "Registra primero un paciente activo."
             )
-# ============================================================
-# PAGINA SESIONES
-# ============================================================    
+
+#================== PAGINA SESIONES ==================
 elif pagina == "Sesiones":
 
     st.subheader("Historial de sesiones")
@@ -796,9 +780,9 @@ elif pagina == "Sesiones":
             st.info(
                 "Todavía no existen sesiones registradas."
             )
-# ============================================================
-# PAGINA CAPTURAS
-# ============================================================
+
+
+#================== PAGINA CAPTURAS ==================
 elif pagina == "Capturas":
     st.subheader("Galería de capturas")
     st.markdown(
@@ -880,11 +864,9 @@ elif pagina == "Capturas":
             st.error(
                 "Error cargando la galería: " + str(exc)
             )
-# ============================================================
-# PAGINA RESULTADOS
-# ============================================================
 
 
+#================== PAGINA RESULTADOS ==================
 elif pagina == "Resultados":
 
     st.subheader("Resultados de inteligencia artificial")
@@ -1008,10 +990,8 @@ elif pagina == "Resultados":
             st.error(
                 "Error consultando resultados: " + str(exc)
             )
-# ============================================================
-# ESTADO DEL SISTEMA
-# ============================================================
 
+#================== ESTADO DEL SISTEMA ==================
 elif pagina == "Estado del sistema":
 
     st.subheader("Estado del sistema")

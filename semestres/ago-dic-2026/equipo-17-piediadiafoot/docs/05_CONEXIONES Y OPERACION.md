@@ -25,12 +25,6 @@
 | OLED DC | GPIO4 | Señal D/C |
 | OLED RES | GPIO2 | Reset |
 | OLED CS físico | GND | Mantener permanentemente seleccionado |
-| OLED CS ficticio | GPIO19 | Sólo conectado al objeto `SSD1306_SPI`; NO conectarlo al pin CS de la pantalla |
-| OLED MISO ficticio | GPIO39 | No conectar a la OLED; se reserva como MISO sin usar para evitar conflicto con GPIO34 del FSR |
-
-### OLED — detalle importante
-
-La prueba funcional fue SPI2 con CS físico de la pantalla a GND y un objeto de pin CS ficticio. En esta integración GPIO34 no se usa para MISO porque está ocupado por el FSR402. Se propone GPIO39 como MISO no conectado. Hay que validar que esta reasignación concreta mantenga el comportamiento en la placa durante la primera prueba de integración; si no, se deberá revisar el constructor SPI de la versión exacta de MicroPython sin cambiar el cableado CS físico probado.
 
 ### HC-SR04
 
@@ -40,8 +34,8 @@ La referencia de 39 cm es la medida desde la cara frontal de los transductores h
 
 ```text
 longitud_estimada_pie = 39 cm - distancia_ultrasonico_a_dedos
-centro_objetivo = 30 cm - longitud_estimada_pie / 2
-ajuste_respecto_al_centro = centro_objetivo - 15 cm
+centro_objetivo = longitud_estimada_pie / 2
+ajuste_respecto_al_centro = centro_objetivo + 5 cm
 ```
 
 El cálculo depende de que el sensor apunte en el eje longitudinal del pie y de que el talón permanezca contra el tope de referencia. 
@@ -58,7 +52,9 @@ Colocado bajo el talón, con divisor de 10 kΩ. El programa usa `fsr_threshold=1
 
 La banda tendrá control manual por pulsos. La guía se reporta de 19 cm y el carro/cámara ocupa aproximadamente 6 cm; por geometría, el recorrido de centro del carro podría ser cerca de 13 cm en total, antes de márgenes.
 
-El esquema de inversión que debe verificarse en el cableado instalado es: COM de cada relevador a cada cable del motor; NC de ambos al negativo de la fuente; NO de ambos al positivo de la fuente. La lógica activa sólo un relevador a la vez y ambos apagados es reposo. Verificar con multímetro y motor desconectado antes de aplicar potencia.
+El esquema de inversión que debe verificarse en el cableado instalado es: COM de cada relevador a cada cable del motor; NC de ambos al negativo de la fuente; NO de ambos al positivo de la fuente. La lógica activa sólo un relevador a la vez y ambos apagados es reposo.
+
+Al activar cada modulo por separado controlamos el sentido en que gira el motor y con ello la dirección del recorrido de la banda, ya sea derecha o izquierda.
 
 Los topes mecánicos propuestos evitan que el carro se salga, pero no desconectan eléctricamente el motor. Pulsos repetidos contra un tope pueden atascarlo y elevar corriente. Los topes por sí solos no equivalen a finales de carrera eléctricos.
 

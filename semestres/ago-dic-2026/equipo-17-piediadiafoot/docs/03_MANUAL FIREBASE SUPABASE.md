@@ -1,6 +1,12 @@
-# DiaFoot — Manual de configuración de Firebase y Supabase
+# PIE DIABETICO - DIA FOOD — Manual de configuración de Firebase y Supabase
 
-Este manual explica la configuración que debe realizar el responsable del proyecto en sus propias cuentas. **No es necesario completar estos pasos para entregar el código y la documentación**; sí son necesarios para habilitar la persistencia en la nube en otra instalación.
+**Integrantes:**
+1. GEOVANNI MORENO GOMEZ       | 23240475 |
+2. DANNA VALERIA ANGELES PEREZ | 23240335 |
+3. ANDREA LOPEZ ESTRADA        | 23240168 | 
+
+
+Este manual explica la configuración que debe realizar el responsable del proyecto en sus propias cuentas; son necesarios para habilitar la persistencia en la nube en otra instalación.
 
 ## 1. Qué servicio usa cada cosa
 
@@ -9,95 +15,94 @@ Este manual explica la configuración que debe realizar el responsable del proye
 
 El código de `dashboard.py` y `vision_mqtt.py` lee los datos privados desde `laptop/.env`. La inicialización cloud está protegida con manejo de errores, por lo que una falta de credenciales se informa en la interfaz/consola; las funciones que dependen de la nube no estarán disponibles.
 
-## 2. Preparar el archivo `.env`
+## 2. Archivos de variables de entorno
 
-Desde la carpeta `laptop`:
+### 2.1 Dashboard: `interfaz/.env`
+
+Desde la carpeta `interfaz/`, crear el archivo local:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-La plantilla contiene:
+Completar:
 
 ```dotenv
 SUPABASE_URL=
 SUPABASE_SECRET_KEY=
-SUPABASE_BUCKET=
-FIREBASE_CREDENTIALS=RUTA_LOCAL_AL_JSON_DE_CUENTA_DE_SERVICIO
+SUPABASE_BUCKET=capturas-dia-foot
+FIREBASE_CREDENTIALS=RUTA_ABSOLUTA_AL_JSON_DE_CUENTA_DE_SERVICIO
 ```
 
-Completar los valores localmente. No usar comillas salvo que la herramienta/valor lo requiera. No compartir el archivo.
+`dashboard.py` carga las variables desde el `.env` situado junto a `dashboard.py`.
 
-## 3. Firebase / Cloud Firestore
+### 2.2 Pruebas: `servidor/.env`
 
-### 3.1 Requisitos
+Desde la carpeta `servidor/`, crear el archivo local:
 
-- Acceso al proyecto Firebase usado por DiaFoot.
-- Permisos suficientes para consultar la configuración del proyecto y obtener una credencial de servidor autorizada.
-- Cloud Firestore habilitado en el proyecto.
-
-El código incluido inicializa Firebase Admin SDK con el identificador de proyecto `vision-dia-foot`. Si el proyecto real tiene otro identificador, no cambiarlo a ciegas: el responsable debe confirmar el ID y adaptar el código/configuración de manera consistente.
-
-### 3.2 Obtener credencial de servidor
-
-1. Entrar a Firebase Console con una cuenta autorizada.
-2. Seleccionar el proyecto correcto.
-3. Abrir la configuración del proyecto y la sección **Cuentas de servicio**.
-4. Seguir el procedimiento institucional para generar/obtener una clave privada JSON de una cuenta de servicio. Si la organización prohíbe crear claves privadas, pedir al administrador una alternativa segura.
-5. Guardar el archivo JSON en una ubicación local protegida, fuera de carpetas públicas o sincronizadas.
-6. En `FIREBASE_CREDENTIALS`, escribir la ruta absoluta al JSON. Ejemplo ilustrativo de Windows:
-
-```dotenv
-FIREBASE_CREDENTIALS=C:\DiaFoot\credenciales\firebase-service-account.json
+```powershell
+Copy-Item .env.example .env
 ```
 
-7. Verificar que la cuenta de servicio tenga únicamente los permisos mínimos necesarios para acceder a Firestore.
+Completar las mismas variables. Los scripts dentro de `servidor/pruebas/` leen este archivo.
 
-**Importante:** la contraseña personal de Google no es esta credencial. No enviar el JSON por correo/chat, no subirlo a GitHub y no incluirlo en el ZIP.
+No es necesario que `mqtt_bridge.py` tenga un `.env`: el broker y cámara se configuran en `servidor/config_ia.json`.
+
+## 3. Firebase Cloud Firestore
+
+1. Abrir Firebase Console y seleccionar el proyecto `vision-dia-foot` (el Dashboard fija este identificador en su inicialización; confirmar que sea el proyecto real del equipo).
+2. Habilitar Cloud Firestore.
+3. Obtener una credencial de cuenta de servicio únicamente mediante una cuenta autorizada y conforme a las políticas del proyecto.
+4. Guardar el JSON fuera del repositorio, por ejemplo en una carpeta privada del usuario.
+5. Copiar la ruta absoluta del archivo en `FIREBASE_CREDENTIALS`.
+6. No subir el JSON al repositorio ni enviarlo por chat público.
+
+### 3.1 Operaciones observadas
+
+`interfaz/dashboard.py`:
+
+- Crea documentos de pacientes en `pacientes/{patient_id}` con `nombre`, `apellido`, `nombre_completo`, `created_at` y `activo`.
+- Consulta documentos de `pacientes`.
+- Lee `sesiones/{session_id}` y cuenta documentos en `sesiones/{session_id}/capturas/{capture_id}`.
+- Lee campos de captura para mostrar paciente, pie, fecha, detecciones, estado de nube y rutas de imágenes.
+
+El proceso `servidor/mqtt_bridge.py` incluido no realiza escritura automática de sesiones/capturas. El esquema de `firebase/esquema.md` distingue campos creados por Dashboard de campos que solo se consultan si existen.
+
+### 3.2 Reglas de seguridad
+
 
 ## 4. Supabase Storage
 
-### 4.1 Requisitos
+1. Abrir el proyecto Supabase autorizado.
+2. Confirmar que existe el bucket `capturas-dia-foot` o escribir el nombre real en `SUPABASE_BUCKET`.
+3. Obtener la URL del proyecto y una clave con los permisos mínimos necesarios para el uso previsto.
+4. Completar `SUPABASE_URL`, `SUPABASE_SECRET_KEY` y `SUPABASE_BUCKET` en los `.env` locales que correspondan.
+5. No publicar la clave secreta. Si se sospecha que fue expuesta, rotarla desde la consola.
 
-- Acceso al proyecto Supabase que contiene el almacenamiento de DiaFoot.
-- URL del proyecto.
-- Clave de servidor autorizada para el entorno local.
-- Bucket existente y permisos/políticas compatibles con las operaciones de carga y lectura que utiliza la aplicación.
+El Dashboard descarga los objetos mediante las rutas `supabase_original_path` y `supabase_annotated_path` de los documentos de captura. La prueba `prueba_subida.py` intenta subir un JPEG a `pruebas/conexion.jpg` y eliminarlo al terminar.
 
-### 4.2 Configurar variables
+## 5. Pruebas
 
-1. Entrar al panel de Supabase y seleccionar el proyecto correcto.
-2. Obtener la URL del proyecto y la clave de servidor de acuerdo con las políticas vigentes de Supabase y de la institución.
-3. Confirmar el nombre exacto del bucket. El código usa `capturas-dia-foot` como valor predeterminado si `SUPABASE_BUCKET` no está definido.
-4. Completar en `laptop/.env`:
+Con `.venv` activo y desde la raíz del proyecto:
 
-```dotenv
-SUPABASE_URL=URL_DEL_PROYECTO
-SUPABASE_SECRET_KEY=CLAVE_PRIVADA_DE_SERVIDOR
-SUPABASE_BUCKET=capturas-dia-foot
+```powershell
+python servidor\pruebas\prueba_firebase.py
+python servidor\pruebas\prueba_supabase.py
+python servidor\pruebas\prueba_subida.py
 ```
 
-5. Comprobar que el bucket exista y que la clave utilizada pueda realizar las operaciones requeridas.
-
-No colocar una clave `service_role` o equivalente en una aplicación pública, navegador o repositorio. En este proyecto se usa desde Python en la laptop, que debe considerarse un entorno de confianza.
-
-## 5. Prueba de conexión
-
-1. Guardar `.env`.
-2. Cerrar y volver a ejecutar `vision_mqtt.py` y `dashboard.py` para que lean las variables.
-3. Revisar la consola de Vision y los avisos del Dashboard.
-4. Realizar una prueba con un paciente/dato ficticio y una imagen de prueba autorizada.
-5. Confirmar en Firestore que se registró el documento esperado y en Storage que se subieron los archivos esperados.
-6. Eliminar los datos de prueba cuando corresponda.
+La prueba de Firestore crea, lee y elimina un documento temporal `pruebas_conexion/prueba_python`. La prueba de Supabase consulta el listado del bucket. La prueba de subida intenta cargar y luego borrar un JPEG de prueba.
 
 ## 6. Errores frecuentes
 
-- **FIREBASE_CREDENTIALS no existe:** la ruta en `.env` está vacía o apunta a un archivo inexistente.
-- **Permiso denegado en Firestore:** revisar proyecto, identidad de servicio y roles mínimos.
-- **Proyecto equivocado:** confirmar que el ID sea `vision-dia-foot` o adaptar el código tras validarlo.
-- **Supabase no inicializa:** revisar URL y clave.
-- **Bucket no encontrado:** revisar el nombre exacto y que el bucket esté creado.
-- **Carga rechazada:** revisar políticas/permisos de Storage y límites aplicables.
+| Síntoma | Revisión |
+|---|---|
+| `FIREBASE_CREDENTIALS` vacío | Confirmar que `interfaz/.env` o `servidor/.env` contiene la ruta absoluta. |
+| JSON de cuenta no encontrado | Verificar que el archivo exista y que la ruta no apunte a otra computadora. |
+| Proyecto Firebase incorrecto | Confirmar el ID `vision-dia-foot` usado por el Dashboard. |
+| Supabase no conecta | Revisar URL, clave y conectividad. |
+| Bucket no encontrado | Confirmar el nombre del bucket y los permisos. |
+| Dashboard no muestra sesiones/capturas | Verificar que existan documentos en Firestore y que sus campos coincidan con `firebase/esquema.md`. La rama actual no los crea desde `mqtt_bridge.py`. |
 
 ## 7. Qué se entrega y qué no
 

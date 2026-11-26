@@ -1,123 +1,177 @@
-# DiaFoot — Manual de instalación y ejecución
+# PIE DIABETICO - DIA FOOD — Manual de instalación y ejecución
+
+**Integrantes:**
+1. GEOVANNI MORENO GOMEZ       | 23240475 |
+2. DANNA VALERIA ANGELES PEREZ | 23240335 |
+3. ANDREA LOPEZ ESTRADA        | 23240168 | 
+
 
 ## 1. Requisitos
 
-- Computadora con Windows (los comandos de ejemplo usan PowerShell) y conexión a la red Wi-Fi local.
-- Python instalado. Se recomienda usar una versión compatible con las versiones vigentes de `ultralytics`, `opencv-python`, `paho-mqtt`, `streamlit` y Firebase/Supabase; validar en el equipo de destino.
-- Thonny u otra herramienta compatible con MicroPython para cargar firmware en las ESP32.
-- ESP32 DevKit, ESP32-WROVER con cámara y hardware periférico.
-- Broker Mosquitto instalado y configurado.
-- Acceso al Wi-Fi de 2.4 GHz para las placas.
-- Credenciales locales de MQTT y, para las funciones cloud, Firebase y Supabase.
+- Windows 10/11 o una computadora compatible con Python y los controladores de las placas.
+- Python 3.10 o posterior recomendado para instalar las dependencias actuales de visión artificial.
+- Thonny con soporte MicroPython.
+- ESP32 DevKit V1 y ESP32-WROVER-CAM compatible con la API `camera` utilizada por el firmware.
+- Mosquitto instalado en la computadora que actuará como broker.
+- Las placas y la computadora conectadas a una misma red Wi-Fi de 2.4 GHz o con conectividad IP entre sí.
+- Credenciales locales de MQTT. Para usar las funciones del Dashboard se requieren también credenciales de Cloud Firestore y Supabase.
 
-> El paquete no contiene credenciales reales ni un archivo `.env`. Tampoco se garantiza que las versiones de software instaladas en otra computadora sean idénticas a las usadas durante el desarrollo.
 
-## 2. Preparar el proyecto en la computadora
+## 2. Estructura de trabajo
 
-1. Extraer `DIAFOOT_ENTREGA_CONSOLIDADA.zip` en una carpeta de trabajo, por ejemplo `C:\\DiaFoot`.
-2. Abrir PowerShell y entrar a la carpeta `DIAFOOT_PROYECTO\\laptop`.
-3. Crear y activar un entorno virtual:
+Clona el repositorio del curso y abre una terminal dentro de la carpeta del proyecto:
+
+```text
+equipo-17-piediadiafoot/
+├── docs/
+├── firebase/
+├── firmware/
+│   ├── main.py
+│   ├── config.json
+│   ├── mqtt_client.py
+│   ├── lcd1602.py
+│   ├── ssd1306.py
+│   ├── hal/
+│   │   ├── __init__.py
+│   │   └── hal.py
+│   └── cam/
+│       └── main.py
+├── hardware/
+├── interfaz/
+│   ├── dashboard.py
+│   └── .env.example
+├── media/
+└── servidor/
+    ├── mqtt_bridge.py
+    ├── config_ia.json
+    ├── requirements.txt
+    ├── .env.example
+    ├── ia/best.pt
+    └── mosquitto/
+```
+
+## 3. Preparar el entorno Python
+
+Desde la carpeta raíz `equipo-17-piediadiafoot/`, abrir PowerShell y ejecutar:
 
 ```powershell
 py -m venv .venv
-.\\.venv\\Scripts\\Activate.ps1
-```
-
-Si PowerShell bloquea la activación, consultar la política local de ejecución o activar el entorno desde CMD con `.venv\\Scripts\\activate.bat`.
-
-4. Actualizar pip e instalar dependencias:
-
-```powershell
+.\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
+python -m pip install -r servidor\requirements.txt
 ```
 
-La primera instalación de Ultralytics/OpenCV puede tardar y requiere conexión a internet.
+Si PowerShell bloquea la activación del entorno, se puede activar desde CMD con:
 
-## 3. Configurar los archivos
+```cmd
+.venv\Scripts\activate.bat
+```
 
-### 3.1 `laptop/.env`
+La primera instalación de OpenCV y Ultralytics puede requerir tiempo y conexión a Internet.
 
-Desde la carpeta `laptop`, copiar la plantilla:
+## 4. Configurar Mosquitto
+
+1. Instalar Mosquitto en la computadora que actuará como broker.
+2. Copiar `servidor/mosquitto/aclfile` y `servidor/mosquitto/mosquitto.conf.example` a la carpeta de configuración de Mosquitto.
+3. Renombrar la copia de `mosquitto.conf.example` a `mosquitto.conf` y comprobar que `password_file` y `acl_file` apunten a las rutas locales correctas.
+4. Crear las contraseñas para los usuarios de la ACL. Ejemplo en Windows, adaptando la ruta:
 
 ```powershell
+mosquitto_passwd -c C:\mosquitto\config\passwd esp32_user
+mosquitto_passwd C:\mosquitto\config\passwd vision_user
+```
+
+5. Mantener `allow_anonymous false`. No guardar las contraseñas en el repositorio.
+6. Iniciar el broker en una terminal:
+
+```powershell
+mosquitto -c C:\mosquitto\config\mosquitto.conf -v
+```
+
+La ACL de ejemplo concede a `esp32_user` lectura de comandos/decisiones y publicación de sensores/estado. `vision_user` recibe sensores/estado y publica comandos/decisiones. Si cambian los tópicos o usuarios, actualizar ACL y configuraciones en conjunto.
+
+## 5. Configurar y cargar la ESP32 DevKit
+
+Editar localmente `firmware/config.json` antes de cargarlo a la placa:
+
+- `wifi_ssid` y `wifi_password`: red local de 2.4 GHz.
+- `mqtt_host`: dirección IP de la computadora que ejecuta Mosquitto.
+- `mqtt_port`: normalmente `1883`.
+- `mqtt_user`: `esp32_user` si se conserva la ACL incluida.
+- `mqtt_password`: contraseña creada para ese usuario.
+
+En Thonny, conectar la ESP32 DevKit y cargar en la raíz del sistema de archivos MicroPython:
+
+```text
+firmware/main.py          -> /main.py
+firmware/config.json      -> /config.json
+firmware/mqtt_client.py   -> /mqtt_client.py
+firmware/lcd1602.py       -> /lcd1602.py
+firmware/ssd1306.py       -> /ssd1306.py
+firmware/hal/__init__.py  -> /hal/__init__.py
+firmware/hal/hal.py       -> /hal/hal.py
+```
+
+La carpeta `hal` debe existir en la placa y contener ambos archivos. El nombre del inicializador debe ser exactamente `__init__.py` (dos guiones bajos antes y después de `init`). Reiniciar la placa y verificar en la consola Wi-Fi, MQTT, sensores y pantallas.
+
+## 6. Configurar y cargar la ESP32-WROVER-CAM
+
+Editar localmente las variables `ssid` y `password` al inicio de `firmware/cam/main.py`. No escribir credenciales reales en un archivo que se vaya a subir a GitHub.
+
+En Thonny, cargar `firmware/cam/main.py` en la raíz del sistema de archivos de la WROVER como `/main.py`. Reiniciar y revisar la IP mostrada en la consola.
+
+Desde un navegador de la misma red comprobar:
+
+```text
+http://IP_DE_LA_WROVER/
+http://IP_DE_LA_WROVER/frame
+```
+
+El endpoint `/frame` entrega datos binarios RGB565 QVGA (320 × 240). La imagen se transfiere mediante HTTP; no se envían fotogramas por MQTT.
+
+## 7. Configurar el servidor de visión
+
+Editar `servidor/config_ia.json`:
+
+- `mqtt_host`: IP de la computadora donde se ejecuta Mosquitto.
+- `mqtt_port`: puerto del broker, normalmente `1883`.
+- `mqtt_user` y `mqtt_password`: credenciales de `vision_user`.
+- `camera_stream_url`: `http://IP_DE_LA_WROVER/frame`.
+- `model_path`: conservar `ia/best.pt`; el archivo se encuentra en `servidor/ia/best.pt`.
+- `confidence`: umbral de inferencia actual, `0.35`.
+
+El código resuelve una ruta relativa del modelo con respecto a la carpeta donde se encuentra `mqtt_bridge.py`, por lo que no depende de la carpeta actual de PowerShell.
+
+Iniciar el proceso desde una terminal con el entorno `.venv` activado:
+
+```powershell
+cd servidor
+python mqtt_bridge.py
+```
+
+El servidor conecta con MQTT, solicita fotogramas HTTP a la WROVER, convierte RGB565 a imagen BGR, ejecuta YOLO y publica los resultados en `proyecto/ia/decision`. Con `show_window: true` se abre una ventana de OpenCV; presionar `Q` para finalizar.
+
+## 8. Configurar y ejecutar el Dashboard
+
+El Dashboard carga sus variables desde `interfaz/.env`. Abre **una segunda ventana de PowerShell** en la carpeta raíz `equipo-17-piediadiafoot/` (mantén la primera ventana con el servidor de visión ejecutándose) y ejecuta:
+
+```powershell
+cd interfaz
 Copy-Item .env.example .env
 ```
 
-Completar las variables de Firebase y Supabase siguiendo `03_MANUAL_FIREBASE_SUPABASE.md`. No enviar ni incluir el `.env` en el ZIP de entrega.
+Completar en `interfaz/.env` (en Windows, se recomienda escribir la ruta de Firebase con diagonales `/`):
 
-### 3.2 `laptop/config_ia.json`
-
-Editar al menos:
-
-- `mqtt_host`: dirección IP de la computadora donde corre Mosquitto.
-- `mqtt_port`: normalmente `1883`, si se conserva la configuración del broker.
-- `mqtt_user`: `vision_user` si se mantiene la ACL incluida.
-- `mqtt_password`: contraseña local de ese usuario.
-- `camera_stream_url`: `http://IP_DE_LA_WROVER/frame`.
-- `model_path`: `best.pt` si el modelo permanece junto a `vision_mqtt.py`.
-- `camera_width` y `camera_height`: `320` y `240` para QVGA.
-
-La aplicación carga `config_ia.json` desde la misma carpeta del script. Mantener la ruta relativa `best.pt` evita depender de una ruta de otra computadora.
-
-### 3.3 `esp32_devkit/config.json`
-
-Antes de cargarlo a la placa, completar:
-
-- `wifi_ssid` y `wifi_password`.
-- `mqtt_host` con la IP de la computadora que ejecuta Mosquitto.
-- `mqtt_port`.
-- `mqtt_user` y `mqtt_password` para `esp32_user`.
-
-Las claves de MQTT deben coincidir con las creadas en el broker. No basta con editar el archivo en la computadora: hay que volver a cargarlo a la DevKit.
-
-### 3.4 `wrover/main.py`
-
-Editar `ssid` y `password` dentro del firmware con la red Wi-Fi de 2.4 GHz. Cargarlo a la raíz de la WROVER como `/main.py`.
-
-## 4. Configurar y arrancar Mosquitto
-
-1. Instalar Mosquitto en la computadora que actuará como broker.
-2. Configurar usuarios y contraseñas localmente. La ACL de referencia utiliza `esp32_user` y `vision_user`; las contraseñas deben crearse mediante las herramientas de Mosquitto y no escribirse en la ACL.
-3. Revisar `mosquitto/mosquitto.conf` y `mosquitto/aclfile`. Copiarlos a las rutas de configuración reales solo después de adaptar las rutas de archivos de contraseña/ACL a la instalación.
-4. Iniciar el servicio Mosquitto.
-5. Confirmar que el broker escucha en el puerto TCP 1883 y que el firewall permite conexiones desde las placas en la red local.
-
-No reemplazar la configuración de un broker existente sin respaldarla. La instalación del servicio y la creación de usuarios dependen del sistema operativo.
-
-## 5. Cargar y probar las placas
-
-### WROVER (primero)
-
-1. Conectar la WROVER por USB y seleccionar el puerto correcto en Thonny.
-2. Cargar `wrover/main.py` como `/main.py`.
-3. Reiniciar la placa.
-4. Revisar la consola: debe mostrar la IP asignada y el mensaje de servidor HTTP listo.
-5. Desde un navegador de la misma red abrir `http://IP_DE_LA_WROVER/`.
-6. Comprobar el fotograma en `http://IP_DE_LA_WROVER/frame`.
-
-### DevKit
-
-1. Cargar a la raíz de la DevKit `esp32_devkit/main.py`, `mqtt_client.py`, `lcd1602.py`, `ssd1306.py` y `config.json`.
-2. Reiniciar.
-3. Revisar que conecte al Wi-Fi y que la consola indique conexión MQTT.
-4. Confirmar que LCD/OLED y sensores respondan según el montaje.
-
-No cargar el `main.py` de la WROVER en la DevKit ni viceversa.
-
-## 6. Orden de ejecución en la laptop
-
-Abrir dos terminales en `laptop` y activar el mismo entorno virtual en ambas.
-
-**Terminal 1 — Visión, YOLO, MQTT y API local:**
-
-```powershell
-python vision_mqtt.py
+```dotenv
+SUPABASE_URL=
+SUPABASE_SECRET_KEY=
+SUPABASE_BUCKET=capturas-dia-foot
+FIREBASE_CREDENTIALS=RUTA_ABSOLUTA_AL_JSON_DE_CUENTA_DE_SERVICIO
 ```
 
-Esperar mensajes de carga del modelo, conexión MQTT y disponibilidad de la API en `http://127.0.0.1:8000`. Los mensajes de Firebase/Supabase informan si esos servicios pudieron inicializarse.
+Guardar el JSON de cuenta de servicio fuera del repositorio y utilizar su ruta absoluta en `FIREBASE_CREDENTIALS`. No subir `.env` ni el JSON privado.
 
-**Terminal 2 — Dashboard:**
+Ejecutar el Dashboard:
 
 ```powershell
 streamlit run dashboard.py
@@ -125,34 +179,54 @@ streamlit run dashboard.py
 
 Abrir la dirección local que indique Streamlit, normalmente `http://localhost:8501`.
 
-Mantener abierta la terminal de `vision_mqtt.py` mientras se use el Dashboard: el Dashboard consulta la API local de ese proceso.
+**Limitación de integración de esta versión:** `dashboard.py` realiza una solicitud HTTP `POST` a `http://127.0.0.1:8000/patient` al pulsar “Establecer paciente activo”, pero el `servidor/mqtt_bridge.py` incluido en esta rama no implementa actualmente ese endpoint ni inicia FastAPI. Por ello, esa acción no funciona con el código entregado en esta carpeta hasta que se incorpore el backend que la atiende. El Dashboard sí contiene código para crear/consultar pacientes en Firestore, consultar sesiones/capturas existentes y descargar imágenes existentes desde Supabase, según los permisos y datos configurados.
 
-## 7. Lista de verificación
+## 9. Variables para pruebas de Firebase y Supabase
 
-- [ ] WROVER conectada al Wi-Fi.
-- [ ] `http://IP_WROVER/` muestra la cámara.
-- [ ] `http://IP_WROVER/frame` responde con fotograma.
-- [ ] Mosquitto activo en la IP/puerto configurados.
-- [ ] DevKit conectada a MQTT.
-- [ ] `vision_mqtt.py` carga `best.pt`.
-- [ ] Se reciben fotogramas y se ejecuta YOLO.
-- [ ] Dashboard abre en Streamlit.
-- [ ] API local responde en `127.0.0.1:8000`.
-- [ ] Firebase y Supabase conectan si se habilitaron las credenciales.
-- [ ] Se realiza una prueba controlada de captura/sesión con datos autorizados.
+Los scripts de comprobación ubicados en `servidor/pruebas/` leen las variables desde `servidor/.env`. Abre una tercera ventana de PowerShell en la raíz del proyecto y ejecuta:
 
-## 8. Solución de problemas
+```powershell
+cd servidor
+Copy-Item .env.example .env
+cd ..
+```
 
-| Síntoma | Revisar |
+Completar las mismas variables de Firebase y Supabase. Ejecutar desde la raíz del proyecto, con `.venv` activo:
+
+```powershell
+python servidor\pruebas\prueba_firebase.py
+python servidor\pruebas\prueba_supabase.py
+python servidor\pruebas\prueba_subida.py
+```
+
+`prueba_firebase.py` crea y elimina un documento temporal. `prueba_subida.py` sube un JPEG pequeño de prueba y después intenta eliminarlo. Ejecutar estas pruebas solo con credenciales y proyecto de prueba autorizados.
+
+## 10. Lista de verificación
+
+- [ ] Mosquitto escucha en la IP y puerto configurados.
+- [ ] Los usuarios y permisos de la ACL coinciden con `firmware/config.json` y `servidor/config_ia.json`.
+- [ ] La DevKit se conecta a Wi-Fi y MQTT.
+- [ ] La DevKit publica `proyecto/sensores/lectura` y `proyecto/actuador/estado`.
+- [ ] La WROVER muestra la página y responde en `/frame`.
+- [ ] El servidor recibe QVGA RGB565 y carga `servidor/ia/best.pt`.
+- [ ] El servidor publica resultados en `proyecto/ia/decision`.
+- [ ] El Dashboard abre correctamente.
+- [ ] Firestore y Supabase conectan con credenciales válidas.
+- [ ] Se resuelve la integración del endpoint `/patient` antes de afirmar que la selección de paciente está conectada con el servidor de visión.
+- [ ] Las funciones de escritura/consulta de sesiones y capturas se prueban con datos de demostración autorizados.
+
+## 11. Solución de problemas
+
+| Síntoma | Qué revisar |
 |---|---|
-| No se encuentra `best.pt` | Ejecutar desde la carpeta `laptop`; confirmar que `model_path` apunta al archivo correcto. |
-| Error MQTT / no conecta | IP del broker, puerto, firewall, servicio activo, usuario y contraseña en ambos clientes. |
-| Cámara no responde | IP mostrada por WROVER, Wi-Fi de 2.4 GHz, alimentación y ruta `/frame`. |
-| Dashboard no conecta con Vision | Mantener `vision_mqtt.py` abierto; verificar que API local use puerto 8000 y que no esté ocupado. |
-| Firestore no inicializa | Revisar ruta del JSON de cuenta de servicio, permisos y proyecto. |
-| Supabase no inicializa o no sube fotos | Revisar URL, clave, nombre del bucket y políticas/permisos de Storage. |
-| Imagen incorrecta o detección inestable | Iluminación, enfoque/posición, formato RGB565, dimensiones y umbral de confianza. |
+| No se encuentra `best.pt` | Confirmar que existe `servidor/ia/best.pt` y que `model_path` es `ia/best.pt`. |
+| MQTT no conecta | IP, puerto, firewall, broker activo, usuario, contraseña y ACL. |
+| WROVER no responde en `/frame` | IP actual, Wi-Fi 2.4 GHz, alimentación y servidor HTTP de la placa. |
+| Tamaño RGB565 incorrecto | Confirmar QVGA 320 × 240 y `PixelFormat.RGB565` en firmware. |
+| El Dashboard no puede establecer paciente activo | Falta el endpoint `/patient` en el backend de esta rama; ver la limitación del apartado 8. |
+| Firebase no conecta | Revisar `FIREBASE_CREDENTIALS`, existencia del archivo, proyecto y permisos de la cuenta de servicio. |
+| Supabase no conecta | Revisar URL, clave, nombre del bucket y políticas de Storage. |
 
-## 9. Seguridad durante pruebas
+## 12. Seguridad de operación
 
-Antes de accionar motores, relés o mecanismos, verificar el cableado, la fuente, el sentido de movimiento y el paro físico. No depender únicamente de un comando de parada por software. Mantener manos y objetos fuera de partes móviles durante las pruebas.
+Antes de activar motores, relevadores o partes móviles, verificar el cableado, la fuente, la corriente de arranque, la polaridad, los topes mecánicos y el paro físico. La configuración versionada conserva `motor_enabled: false` y `physical_stops_confirmed: false`; no cambiar esos valores hasta documentar y comprobar las condiciones de seguridad del mecanismo real. No alimentar motores o servos directamente desde GPIO. 

@@ -1,8 +1,11 @@
-# Esquema de Cloud Firestore — PIE DIAFOOT
+# Esquema de Cloud Firestore — PIE DIABETICO - DIA FOOD
 
-**Fuente:** `laptop/vision_mqtt.py`, `laptop/dashboard.py` y `laptop/prueba_firebase.py` del paquete documentado.
+**Integrantes:**
+1. GEOVANNI MORENO GOMEZ       | 23240475 |
+2. DANNA VALERIA ANGELES PEREZ | 23240335 |
+3. ANDREA LOPEZ ESTRADA        | 23240168 | 
 
-**Alcance:** describe los campos que el código escribe o lee. No es una exportación de la base activa ni demuestra que existan documentos en producción. Los campos opcionales pueden no estar presentes en documentos antiguos.
+**Fuente:** `vision_mqtt.py`, `dashboard.py` y `prueba_firebase.py` del paquete documentado.
 
 ## 1. Servicio y rutas
 
@@ -172,13 +175,4 @@ Las rutas se guardan en Firestore después del intento de subida. Si falla una c
 
 `laptop/prueba_firebase.py` crea temporalmente `pruebas_conexion/prueba_python` con los campos `proyecto` (string), `prueba` (string), `estado` (string) y `fecha` (timestamp). El mismo script contiene una operación para eliminar ese documento. Esta colección no es parte de las tres rutas operativas principales.
 
-## 11. Confirmación de documentos reales
 
-| Verificación | Resultado |
-|---|---|
-| ¿Los campos descritos están implementados en el código? | Sí, derivan de las escrituras y lecturas revisadas. |
-| ¿Se confirmó que existen documentos actualmente en Firebase? | No; el paquete no incluye exportación de Firestore ni consulta en vivo. |
-| ¿Se confirmó que las colecciones están pobladas por pruebas reales del sistema? | No; la implementación de escrituras no demuestra que se hayan ejecutado correctamente en la nube. |
-| ¿Los ejemplos son documentos reales? | No; son ejemplos de estructura derivados del código. |
-
-Para confirmar el contenido real, abrir Firebase Console → Firestore Database → Data con una cuenta autorizada. Ocultar nombres, IDs de pacientes, fotografías y cualquier dato identificable antes de compartir capturas.
